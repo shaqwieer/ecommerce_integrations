@@ -5,7 +5,7 @@ app_title = "Ecommerce Integrations"
 app_publisher = "Shaqwieer"
 app_description = "Ecommerce integrations for ERPNext In Egypt"
 app_email = "mshaqwieer@yahoo.com"
-app_license = "GNU GPL v3.0"
+app_license = "mit"
 required_apps = ["frappe/erpnext"]
 
 # Includes in <head>
