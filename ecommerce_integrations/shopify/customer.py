@@ -28,6 +28,13 @@ class ShopifyCustomer(EcommerceCustomer):
 		customer_group = self.setting.customer_group
 		super().sync_customer(customer_name, customer_group)
 
+		# Check flag before creating addresses and contacts (basic Shopify plan doesn't provide PII)
+		personally_identifiable_information_access = frappe.db.get_single_value(
+			SETTING_DOCTYPE, "personally_identifiable_information_access"
+		)
+		if not personally_identifiable_information_access:
+			return
+
 		billing_address = customer.get("billing_address", {}) or customer.get("default_address")
 		shipping_address = customer.get("shipping_address", {})
 

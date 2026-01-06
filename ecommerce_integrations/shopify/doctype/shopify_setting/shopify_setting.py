@@ -32,6 +32,53 @@ from ecommerce_integrations.shopify.utils import (
 
 
 class ShopifySetting(SettingController):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from ecommerce_integrations.shopify.doctype.shopify_tax_account.shopify_tax_account import ShopifyTaxAccount
+		from ecommerce_integrations.shopify.doctype.shopify_warehouse_mapping.shopify_warehouse_mapping import ShopifyWarehouseMapping
+		from ecommerce_integrations.shopify.doctype.shopify_webhooks.shopify_webhooks import ShopifyWebhooks
+		from frappe.types import DF
+
+		add_shipping_as_item: DF.Check
+		cash_bank_account: DF.Link | None
+		company: DF.Link | None
+		consolidate_taxes: DF.Check
+		cost_center: DF.Link | None
+		customer_group: DF.Link | None
+		default_customer: DF.Link | None
+		default_sales_tax_account: DF.Link | None
+		default_shipping_charges_account: DF.Link | None
+		delivery_note_series: DF.Literal[None]
+		enable_shopify: DF.Check
+		inventory_sync_frequency: DF.Literal["5", "10", "15", "30", "60"]
+		is_old_data_migrated: DF.Check
+		last_inventory_sync: DF.Datetime | None
+		old_orders_from: DF.Datetime | None
+		old_orders_to: DF.Datetime | None
+		password: DF.Password | None
+		personally_identifiable_information_access: DF.Check
+		sales_invoice_series: DF.Literal[None]
+		sales_order_series: DF.Literal[None]
+		shared_secret: DF.Data | None
+		shipping_item: DF.Link | None
+		shopify_url: DF.Data | None
+		shopify_warehouse_mapping: DF.Table[ShopifyWarehouseMapping]
+		sync_delivery_note: DF.Check
+		sync_new_item_as_active: DF.Check
+		sync_old_orders: DF.Check
+		sync_sales_invoice: DF.Check
+		taxes: DF.Table[ShopifyTaxAccount]
+		update_erpnext_stock_levels_to_shopify: DF.Check
+		update_shopify_item_on_update: DF.Check
+		upload_erpnext_items: DF.Check
+		upload_variants_as_items: DF.Check
+		warehouse: DF.Link | None
+		webhooks: DF.Table[ShopifyWebhooks]
+	# end: auto-generated types
 	def is_enabled(self) -> bool:
 		return bool(self.enable_shopify)
 
@@ -52,10 +99,10 @@ class ShopifySetting(SettingController):
 			migrate_from_old_connector()
 
 	def _handle_webhooks(self):
-		if self.is_enabled() and not self.webhooks:
+		if self.is_enabled() :
 			new_webhooks = connection.register_webhooks(self.shopify_url, self.get_password("password"))
 
-			if not new_webhooks:
+			if not new_webhooks and not self.webhooks:
 				msg = _("Failed to register webhooks with Shopify.") + "<br>"
 				msg += _("Please check credentials and retry.") + " "
 				msg += _("Disabling and re-enabling the integration might also help.")

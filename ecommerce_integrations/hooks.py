@@ -33,7 +33,6 @@ required_apps = ["frappe/erpnext"]
 doctype_js = {
 	"Shopify Settings": "public/js/shopify/old_settings.js",
 	"Sales Order": [
-		# "public/js/unicommerce/sales_order.js",
 		"public/js/common/ecommerce_transactions.js",
 	],
 	"Sales Invoice": [
@@ -44,7 +43,7 @@ doctype_js = {
 	# "Stock Entry": "public/js/unicommerce/stock_entry.js",
 	# "Pick List": "public/js/unicommerce/pick_list.js",
 }
-# doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
+doctype_list_js = {"Sales Order": "public/js/shopify/sales_order_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
 
@@ -137,8 +136,8 @@ scheduler_events = {
 	"all": ["ecommerce_integrations.shopify.inventory.update_inventory_on_shopify"],
 	"daily": [],
 	"daily_long": [
-        # "ecommerce_integrations.zenoti.doctype.zenoti_settings.zenoti_settings.sync_stocks"
-        ],
+		# "ecommerce_integrations.zenoti.doctype.zenoti_settings.zenoti_settings.sync_stocks"
+	],
 	"hourly": [
 		"ecommerce_integrations.shopify.order.sync_old_orders",
 		# "ecommerce_integrations.amazon.doctype.amazon_sp_api_settings.amazon_sp_api_settings.schedule_get_order_details",
@@ -213,6 +212,8 @@ extend_bootinfo = "ecommerce_integrations.boot.boot_session"
 # 	}
 # ]
 
+# Automatically update python controller files with type annotations for this app.
+export_python_type_annotations = True
 
 default_log_clearing_doctypes = {
 	"Ecommerce Integration Log": 120,
