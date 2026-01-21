@@ -8,6 +8,14 @@ app_email = "mshaqwieer@yahoo.com"
 app_license = "mit"
 required_apps = ["frappe/erpnext"]
 
+fixtures = [
+    {
+        "doctype": "Workspace",
+        "filters": [
+            ["name", "=", "E-Commerce"]
+        ]
+    }
+]
 # Includes in <head>
 # ------------------
 
