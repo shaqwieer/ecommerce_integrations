@@ -3,39 +3,35 @@ from typing import Any
 
 import frappe
 from frappe import _
-from frappe.utils import validate_phone_number
 
-from ecommerce_integrations.controllers.customer import EcommerceCustomer
 from ecommerce_integrations.shopify.constants import (
-	ADDRESS_ID_FIELD,
-	CUSTOMER_ID_FIELD,
-	MODULE_NAME,
 	ORDER_ID_FIELD,
+	SHIPPING_ADDRESS_FIELD,
+	SHIPPING_CUSTOMER_NAME_FIELD,
+	SHIPPING_PHONE_FIELD,
 )
 
 
 @frappe.whitelist()
 def sync_customers_from_excel(file_url: str):
-	"""Enrich existing customers (created from sales order webhooks) with Excel data.
+	"""Update Sales Orders with shipping customer info from Shopify Excel export.
 
 	Expects `file_url` an Attach field value (e.g. /files/filename.xlsx).
 
-	**Use Case**: Customers already exist in ERPNext (from Shopify sales order webhooks)
-	with only their customer_id. This function enriches them with:
-	- Customer name (first_name + last_name)
-	- Email address
-	- Phone number
-	- Shipping address and contact details
+	**Use Case**: Sales Orders use a default customer for online orders.
+	This function enriches the Sales Orders (and related Invoices/Delivery Notes) with:
+	- Shipping customer name
+	- Shipping address
+	- Shipping phone number
 
 	**Performance Note**: Filter Excel by date to match recent sales orders, then
-	this function updates only the relevant customers.
+	this function updates only the relevant orders.
 
 	Required fields in Excel:
-	- customer_id: Unique identifier (must match existing customer record)
-	- first_name, last_name: Customer name data
-	- email: Customer email address
-	- phone: Phone number (optional, added to address and contact)
-	- shipping_address fields: address1, address2, city, state/province, zip, country
+	- Id: Shopify Order ID (must match existing Sales Order)
+	- Shipping Name: Customer name for shipping
+	- Shipping Street, Shipping Address1, Shipping City, etc.: Address fields
+	- Phone: Phone number
 
 	Respects the `personally_identifiable_information_access` flag from Shopify Settings.
 	"""
@@ -50,28 +46,23 @@ def sync_customers_from_excel(file_url: str):
 	date_from = _fetch_earliest_date(rows)
 	row_dict = {str(row.get("Id")).strip(): row for row in rows if row.get("Id")}
 	sales_orders = _get_sales_orders_from_erpnext_with_customer_info(date_from)
-	# need to iterate over sales order and from row dictionary i enrich with customer name and contact and address from ecommerece class two func contact and address
+
 	for so in sales_orders:
 		order_id = str(so.get(ORDER_ID_FIELD)).strip()
 		if order_id in row_dict:
 			order_full_data = row_dict[order_id]
-			ecommerece_customer = EcommerceCustomer(so.customer, "name", MODULE_NAME)
 			try:
-				customer_doc = ecommerece_customer.get_customer_doc()
-				customer_name = order_full_data.get("Shipping Name").strip()
-				if not customer_name:
-					customer_name = order_full_data.get("Email", "").strip()
-				if customer_doc.customer_name != customer_name:
-					customer_doc.customer_name = customer_name
-					customer_doc.save(ignore_permissions=True)
-				# create address
-				shipping_address = _map_address_fields(
-					order_full_data, customer_name, "Shipping", order_full_data.get("Email", "").strip()
-				)
-				ecommerece_customer.create_customer_address(shipping_address)
-				# create contact
-				contact = _map_customer_contact(order_full_data)
-				ecommerece_customer.create_customer_contact(contact)
+				# Extract shipping customer info from Excel
+				shipping_info = _extract_shipping_info_from_excel(order_full_data)
+
+				# Update Sales Order with shipping info
+				_update_sales_order_shipping_info(so.name, shipping_info)
+
+				# Update related Sales Invoice if exists
+				_update_sales_invoice_shipping_info(order_id, shipping_info)
+
+				# Update related Delivery Notes if exist
+				_update_delivery_notes_shipping_info(order_id, shipping_info)
 
 				updated += 1
 			except frappe.DoesNotExistError:
@@ -82,6 +73,68 @@ def sync_customers_from_excel(file_url: str):
 			skipped += 1
 
 	return {"updated": updated, "skipped": skipped, "errors": errors}
+
+
+def _extract_shipping_info_from_excel(order_data: dict) -> dict:
+	"""Extract shipping customer info from Excel row data."""
+	# Build full address string
+	address_parts = []
+	if order_data.get("Shipping Street"):
+		address_parts.append(str(order_data.get("Shipping Street")).strip())
+	if order_data.get("Shipping Address1"):
+		address_parts.append(str(order_data.get("Shipping Address1")).strip())
+	if order_data.get("Shipping City"):
+		address_parts.append(str(order_data.get("Shipping City")).strip())
+	if order_data.get("Shipping Province"):
+		address_parts.append(str(order_data.get("Shipping Province")).strip())
+	if order_data.get("Shipping Zip"):
+		address_parts.append(str(order_data.get("Shipping Zip")).strip())
+	if order_data.get("Shipping Country"):
+		address_parts.append(str(order_data.get("Shipping Country")).strip())
+
+	full_address = ", ".join([p for p in address_parts if p])
+
+	shipping_name = str(order_data.get("Shipping Name") or "").strip()
+	if not shipping_name:
+		shipping_name = str(order_data.get("Email") or "").strip()
+
+	shipping_phone = str(order_data.get("Phone") or "").strip()
+
+	return {
+		"shipping_customer_name": shipping_name,
+		"shipping_address": full_address,
+		"shipping_phone": shipping_phone,
+	}
+
+
+def _update_sales_order_shipping_info(so_name: str, shipping_info: dict):
+	"""Update Sales Order with shipping customer info."""
+	so_doc = frappe.get_doc("Sales Order", so_name)
+	so_doc.db_set(SHIPPING_CUSTOMER_NAME_FIELD, shipping_info.get("shipping_customer_name", ""))
+	so_doc.db_set(SHIPPING_ADDRESS_FIELD, shipping_info.get("shipping_address", ""))
+	so_doc.db_set(SHIPPING_PHONE_FIELD, shipping_info.get("shipping_phone", ""))
+
+
+def _update_sales_invoice_shipping_info(order_id: str, shipping_info: dict):
+	"""Update Sales Invoice with shipping customer info if exists."""
+	si_name = frappe.db.get_value("Sales Invoice", {ORDER_ID_FIELD: order_id}, "name")
+	if si_name:
+		frappe.db.set_value("Sales Invoice", si_name, {
+			SHIPPING_CUSTOMER_NAME_FIELD: shipping_info.get("shipping_customer_name", ""),
+			SHIPPING_ADDRESS_FIELD: shipping_info.get("shipping_address", ""),
+			SHIPPING_PHONE_FIELD: shipping_info.get("shipping_phone", ""),
+		})
+
+
+def _update_delivery_notes_shipping_info(order_id: str, shipping_info: dict):
+	"""Update Delivery Notes with shipping customer info if exist."""
+	dn_list = frappe.db.get_all("Delivery Note", filters={ORDER_ID_FIELD: order_id}, pluck="name")
+	for dn_name in dn_list:
+		frappe.db.set_value("Delivery Note", dn_name, {
+			SHIPPING_CUSTOMER_NAME_FIELD: shipping_info.get("shipping_customer_name", ""),
+			SHIPPING_ADDRESS_FIELD: shipping_info.get("shipping_address", ""),
+			SHIPPING_PHONE_FIELD: shipping_info.get("shipping_phone", ""),
+		})
 
 
 def _check_file_path(file_url: str) -> str:
@@ -126,72 +179,16 @@ def _read_file_and_extract_rows(site_path: str) -> list[dict[str, Any]]:
 
 
 def _get_sales_orders_from_erpnext_with_customer_info(date_from: str) -> list[dict[str, Any]]:
-	"""Get sales orders with customer name id from ERPNext created on or after `date_from`."""
+	"""Get sales orders with shopify_order_id from ERPNext created on or after `date_from`."""
 	sales_orders = frappe.db.get_all(
 		"Sales Order",
 		filters={
 			"creation": [">=", date_from],
 			ORDER_ID_FIELD: ["is", "set"],
 		},
-		fields=["name", "customer", ORDER_ID_FIELD],
+		fields=["name", ORDER_ID_FIELD],
 	)
 	return sales_orders
-
-
-def _map_address_fields(shopify_address, customer_name, address_type, email):
-	"""returns dict with shopify address fields mapped to equivalent ERPNext fields"""
-
-	country_mapping = {
-		"EG": "Egypt",
-		"US": "United States",
-		"GB": "United Kingdom",
-		"DE": "Germany",
-		"FR": "France",
-		"IT": "Italy",
-		"ES": "Spain",
-		"CA": "Canada",
-		"AU": "Australia",
-		"JP": "Japan",
-		"CN": "China",
-		"IN": "India",
-	}
-	address_fields = {
-		"address_title": customer_name,
-		"address_type": address_type,
-		ADDRESS_ID_FIELD: shopify_address.get("Id"),
-		"address_line1": shopify_address.get("Shipping Street") or "Shipping Address1",
-		"address_line2": shopify_address.get("Shipping Address1"),
-		"city": shopify_address.get("Shipping City"),
-		"state": shopify_address.get("Shipping Province"),
-		"pincode": shopify_address.get("Shipping Zip"),
-		"country": country_mapping.get(shopify_address.get("Shipping Country"), "Egypt"),
-		"email_id": email,
-	}
-
-	phone = shopify_address.get("Phone")
-	# if validate_phone_number(phone, throw=False):
-	address_fields["Phone"] = phone
-
-	return address_fields
-
-
-def _map_customer_contact(shopify_customer: dict[str, Any]) -> None:
-	contact_fields = {
-		"status": "Passive",
-		"first_name": shopify_customer.get("Shipping Name").split(" ")[0],
-		"last_name": shopify_customer.get("Shipping Name").split(" ")[-1],
-		"unsubscribed": True,
-	}
-
-	if shopify_customer.get("email"):
-		contact_fields["email_ids"] = [{"email_id": shopify_customer.get("email"), "is_primary": True}]
-
-	phone_no = shopify_customer.get("phone") or shopify_customer.get("default_address", {}).get("phone")
-
-	if validate_phone_number(phone_no, throw=False):
-		contact_fields["phone_nos"] = [{"phone": phone_no, "is_primary_phone": True}]
-
-	return contact_fields
 
 
 def _fetch_earliest_date(rows: list[dict[str, Any]]) -> str:

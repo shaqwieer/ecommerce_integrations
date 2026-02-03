@@ -38,5 +38,10 @@ ADDRESS_ID_FIELD = "shopify_address_id"
 ORDER_ITEM_DISCOUNT_FIELD = "shopify_item_discount"
 ITEM_SELLING_RATE_FIELD = "shopify_selling_rate"
 
+# Shipping customer fields
+SHIPPING_CUSTOMER_NAME_FIELD = "shopify_shipping_customer_name"
+SHIPPING_ADDRESS_FIELD = "shopify_shipping_address"
+SHIPPING_PHONE_FIELD = "shopify_shipping_phone"
+
 # ERPNext already defines the default UOMs from Shopify but names are different
 WEIGHT_TO_ERPNEXT_UOM_MAP = {"kg": "Kg", "g": "Gram", "oz": "Ounce", "lb": "Pound"}

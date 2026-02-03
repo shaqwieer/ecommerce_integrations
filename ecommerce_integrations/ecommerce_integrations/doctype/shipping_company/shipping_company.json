@@ -1,0 +1,75 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-02-03 23:31:56.118307",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "main_information_section",
+  "shipping_name",
+  "contact_address",
+  "column_break_jwry",
+  "contact_number",
+  "additional_info"
+ ],
+ "fields": [
+  {
+   "fieldname": "main_information_section",
+   "fieldtype": "Section Break",
+   "label": "Main Information"
+  },
+  {
+   "fieldname": "shipping_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Shipping Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "contact_address",
+   "fieldtype": "Data",
+   "label": "Contact Address"
+  },
+  {
+   "fieldname": "column_break_jwry",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "contact_number",
+   "fieldtype": "Phone",
+   "label": "Contact Number"
+  },
+  {
+   "fieldname": "additional_info",
+   "fieldtype": "Text",
+   "label": "Additional Info"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-02-03 23:34:11.319983",
+ "modified_by": "Administrator",
+ "module": "Ecommerce Integrations",
+ "name": "Shipping Company",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

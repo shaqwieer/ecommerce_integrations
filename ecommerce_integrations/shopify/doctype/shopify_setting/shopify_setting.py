@@ -23,6 +23,9 @@ from ecommerce_integrations.shopify.constants import (
 	ORDER_ITEM_DISCOUNT_FIELD,
 	ORDER_NUMBER_FIELD,
 	ORDER_STATUS_FIELD,
+	SHIPPING_ADDRESS_FIELD,
+	SHIPPING_CUSTOMER_NAME_FIELD,
+	SHIPPING_PHONE_FIELD,
 	SUPPLIER_ID_FIELD,
 )
 from ecommerce_integrations.shopify.utils import (
@@ -218,6 +221,27 @@ def setup_custom_fields():
 				read_only=1,
 				print_hide=1,
 			),
+			dict(
+				fieldname=SHIPPING_CUSTOMER_NAME_FIELD,
+				label="Shopify Shipping Customer Name",
+				fieldtype="Data",
+				insert_after=ORDER_STATUS_FIELD,
+				read_only=1,
+			),
+			dict(
+				fieldname=SHIPPING_ADDRESS_FIELD,
+				label="Shopify Shipping Address",
+				fieldtype="Small Text",
+				insert_after=SHIPPING_CUSTOMER_NAME_FIELD,
+				read_only=1,
+			),
+			dict(
+				fieldname=SHIPPING_PHONE_FIELD,
+				label="Shopify Shipping Phone",
+				fieldtype="Data",
+				insert_after=SHIPPING_ADDRESS_FIELD,
+				read_only=1,
+			),
 		],
 		"Sales Order Item": [
 			dict(
@@ -261,6 +285,27 @@ def setup_custom_fields():
 				read_only=1,
 				print_hide=1,
 			),
+			dict(
+				fieldname=SHIPPING_CUSTOMER_NAME_FIELD,
+				label="Shopify Shipping Customer Name",
+				fieldtype="Data",
+				insert_after=ORDER_STATUS_FIELD,
+				read_only=1,
+			),
+			dict(
+				fieldname=SHIPPING_ADDRESS_FIELD,
+				label="Shopify Shipping Address",
+				fieldtype="Small Text",
+				insert_after=SHIPPING_CUSTOMER_NAME_FIELD,
+				read_only=1,
+			),
+			dict(
+				fieldname=SHIPPING_PHONE_FIELD,
+				label="Shopify Shipping Phone",
+				fieldtype="Data",
+				insert_after=SHIPPING_ADDRESS_FIELD,
+				read_only=1,
+			),
 		],
 		"Sales Invoice": [
 			dict(
@@ -286,6 +331,27 @@ def setup_custom_fields():
 				insert_after=ORDER_ID_FIELD,
 				read_only=1,
 				print_hide=1,
+			),
+			dict(
+				fieldname=SHIPPING_CUSTOMER_NAME_FIELD,
+				label="Shopify Shipping Customer Name",
+				fieldtype="Data",
+				insert_after=ORDER_STATUS_FIELD,
+				read_only=1,
+			),
+			dict(
+				fieldname=SHIPPING_ADDRESS_FIELD,
+				label="Shopify Shipping Address",
+				fieldtype="Small Text",
+				insert_after=SHIPPING_CUSTOMER_NAME_FIELD,
+				read_only=1,
+			),
+			dict(
+				fieldname=SHIPPING_PHONE_FIELD,
+				label="Shopify Shipping Phone",
+				fieldtype="Data",
+				insert_after=SHIPPING_ADDRESS_FIELD,
+				read_only=1,
 			),
 		],
 	}

@@ -9,6 +9,9 @@ from ecommerce_integrations.shopify.constants import (
 	ORDER_ID_FIELD,
 	ORDER_NUMBER_FIELD,
 	SETTING_DOCTYPE,
+	SHIPPING_ADDRESS_FIELD,
+	SHIPPING_CUSTOMER_NAME_FIELD,
+	SHIPPING_PHONE_FIELD,
 )
 from ecommerce_integrations.shopify.order import get_sales_order
 from ecommerce_integrations.shopify.utils import create_shopify_log
@@ -45,6 +48,10 @@ def create_delivery_note(shopify_order, setting, so):
 			setattr(dn, ORDER_ID_FIELD, fulfillment.get("order_id"))
 			setattr(dn, ORDER_NUMBER_FIELD, shopify_order.get("name"))
 			setattr(dn, FULLFILLMENT_ID_FIELD, fulfillment.get("id"))
+			# Copy shipping customer info from Sales Order
+			setattr(dn, SHIPPING_CUSTOMER_NAME_FIELD, so.get(SHIPPING_CUSTOMER_NAME_FIELD) or "")
+			setattr(dn, SHIPPING_ADDRESS_FIELD, so.get(SHIPPING_ADDRESS_FIELD) or "")
+			setattr(dn, SHIPPING_PHONE_FIELD, so.get(SHIPPING_PHONE_FIELD) or "")
 			dn.set_posting_time = 1
 			dn.posting_date = getdate(fulfillment.get("created_at"))
 			dn.naming_series = setting.delivery_note_series or "DN-Shopify-"

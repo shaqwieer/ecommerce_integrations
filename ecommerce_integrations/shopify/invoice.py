@@ -6,6 +6,9 @@ from ecommerce_integrations.shopify.constants import (
 	ORDER_ID_FIELD,
 	ORDER_NUMBER_FIELD,
 	SETTING_DOCTYPE,
+	SHIPPING_ADDRESS_FIELD,
+	SHIPPING_CUSTOMER_NAME_FIELD,
+	SHIPPING_PHONE_FIELD,
 )
 from ecommerce_integrations.shopify.utils import create_shopify_log
 
@@ -42,6 +45,10 @@ def create_sales_invoice(shopify_order, setting, so):
 		sales_invoice = make_sales_invoice(so.name, ignore_permissions=True)
 		sales_invoice.set(ORDER_ID_FIELD, str(shopify_order.get("id")))
 		sales_invoice.set(ORDER_NUMBER_FIELD, shopify_order.get("name"))
+		# Copy shipping customer info from Sales Order
+		sales_invoice.set(SHIPPING_CUSTOMER_NAME_FIELD, so.get(SHIPPING_CUSTOMER_NAME_FIELD) or "")
+		sales_invoice.set(SHIPPING_ADDRESS_FIELD, so.get(SHIPPING_ADDRESS_FIELD) or "")
+		sales_invoice.set(SHIPPING_PHONE_FIELD, so.get(SHIPPING_PHONE_FIELD) or "")
 		sales_invoice.set_posting_time = 1
 		sales_invoice.posting_date = posting_date
 		sales_invoice.due_date = posting_date

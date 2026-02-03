@@ -16,6 +16,9 @@ from ecommerce_integrations.shopify.constants import (
 	ORDER_NUMBER_FIELD,
 	ORDER_STATUS_FIELD,
 	SETTING_DOCTYPE,
+	SHIPPING_ADDRESS_FIELD,
+	SHIPPING_CUSTOMER_NAME_FIELD,
+	SHIPPING_PHONE_FIELD,
 )
 from ecommerce_integrations.shopify.customer import ShopifyCustomer
 from ecommerce_integrations.shopify.product import create_items_if_not_exist, get_item_code
@@ -38,33 +41,63 @@ def sync_sales_order(payload, request_id=None):
 		create_shopify_log(status="Invalid", message="Sales order already exists, not synced")
 		return
 	try:
-		shopify_customer = order.get("customer") if order.get("customer") is not None else {}
-		shopify_customer["billing_address"] = order.get("billing_address", "")
-		shopify_customer["shipping_address"] = order.get("shipping_address", "")
-		customer_id = shopify_customer.get("id")
-		if customer_id:
-			customer = ShopifyCustomer(customer_id=customer_id)
-			if not customer.is_synced():
-				customer.sync_customer(customer=shopify_customer)
-			else:
-				customer.update_existing_addresses(shopify_customer)
+		# Extract shipping info from the order (used for all online customers)
+		shipping_info = _extract_shipping_info(order)
 
 		create_items_if_not_exist(order)
 
 		setting = frappe.get_doc(SETTING_DOCTYPE)
-		create_order(order, setting)
+		create_order(order, setting, shipping_info=shipping_info)
 	except Exception as e:
 		create_shopify_log(status="Error", exception=e, rollback=True)
 	else:
 		create_shopify_log(status="Success")
 
 
-def create_order(order, setting, company=None):
+def _extract_shipping_info(shopify_order):
+	"""Extract shipping customer info from Shopify order."""
+	shipping_address = shopify_order.get("shipping_address") or {}
+
+	# Build full address string
+	address_parts = []
+	if shipping_address.get("address1"):
+		address_parts.append(shipping_address.get("address1"))
+	if shipping_address.get("address2"):
+		address_parts.append(shipping_address.get("address2"))
+	if shipping_address.get("city"):
+		address_parts.append(shipping_address.get("city"))
+	if shipping_address.get("province"):
+		address_parts.append(shipping_address.get("province"))
+	if shipping_address.get("zip"):
+		address_parts.append(shipping_address.get("zip"))
+	if shipping_address.get("country"):
+		address_parts.append(shipping_address.get("country"))
+
+	full_address = ", ".join(address_parts)
+
+	# Get customer name from shipping address or order customer
+	shipping_name = shipping_address.get("name") or ""
+	if not shipping_name:
+		first_name = shipping_address.get("first_name") or ""
+		last_name = shipping_address.get("last_name") or ""
+		shipping_name = f"{first_name} {last_name}".strip()
+
+	# Get phone from shipping address
+	shipping_phone = shipping_address.get("phone") or ""
+
+	return {
+		"shipping_customer_name": shipping_name,
+		"shipping_address": full_address,
+		"shipping_phone": shipping_phone,
+	}
+
+
+def create_order(order, setting, company=None, shipping_info=None):
 	# local import to avoid circular dependencies
 	from ecommerce_integrations.shopify.fulfillment import create_delivery_note
 	from ecommerce_integrations.shopify.invoice import create_sales_invoice
 
-	so = create_sales_order(order, setting, company)
+	so = create_sales_order(order, setting, company, shipping_info=shipping_info)
 	if so:
 		if order.get("financial_status") == "paid":
 			create_sales_invoice(order, setting, so)
@@ -73,11 +106,11 @@ def create_order(order, setting, company=None):
 			create_delivery_note(order, setting, so)
 
 
-def create_sales_order(shopify_order, setting, company=None):
+def create_sales_order(shopify_order, setting, company=None, shipping_info=None):
+	# Always use default customer for online orders
 	customer = setting.default_customer
-	if shopify_order.get("customer", {}):
-		if customer_id := shopify_order.get("customer", {}).get("id"):
-			customer = frappe.db.get_value("Customer", {CUSTOMER_ID_FIELD: customer_id}, "name")
+	if not customer:
+		frappe.throw("Default Customer is not set in Shopify Settings. Please configure it first.")
 
 	so = frappe.db.get_value("Sales Order", {ORDER_ID_FIELD: shopify_order.get("id")}, "name")
 
@@ -101,6 +134,10 @@ def create_sales_order(shopify_order, setting, company=None):
 
 			return ""
 
+		# Extract shipping info if not provided
+		if not shipping_info:
+			shipping_info = _extract_shipping_info(shopify_order)
+
 		taxes = get_order_taxes(shopify_order, setting, items)
 		so = frappe.get_doc(
 			{
@@ -117,6 +154,10 @@ def create_sales_order(shopify_order, setting, company=None):
 				"items": items,
 				"taxes": taxes,
 				"tax_category": get_dummy_tax_category(),
+				# Shipping customer info
+				SHIPPING_CUSTOMER_NAME_FIELD: shipping_info.get("shipping_customer_name", ""),
+				SHIPPING_ADDRESS_FIELD: shipping_info.get("shipping_address", ""),
+				SHIPPING_PHONE_FIELD: shipping_info.get("shipping_phone", ""),
 			}
 		)
 
