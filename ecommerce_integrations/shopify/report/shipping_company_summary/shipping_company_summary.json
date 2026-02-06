@@ -10,7 +10,7 @@
  "idx": 0,
  "is_standard": "Yes",
  "letterhead": null,
- "modified": "2026-02-06 16:54:39.391180",
+ "modified": "2026-02-06 22:08:36.137365",
  "modified_by": "Administrator",
  "module": "shopify",
  "name": "Shipping Company Summary",
@@ -22,6 +22,9 @@
  "roles": [
   {
    "role": "System Manager"
+  },
+  {
+   "role": "Accounts Manager"
   }
  ],
  "timeout": 0
