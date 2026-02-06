@@ -10,10 +10,10 @@ API_VERSION = "2024-01"
 
 WEBHOOK_EVENTS = [
 	"orders/create",
-	"orders/paid",
-	"orders/fulfilled",
-	"orders/cancelled",
-	"orders/partially_fulfilled",
+	# "orders/paid",
+	# "orders/fulfilled",
+	# "orders/cancelled",
+	# "orders/partially_fulfilled",
 ]
 
 EVENT_MAPPER = {

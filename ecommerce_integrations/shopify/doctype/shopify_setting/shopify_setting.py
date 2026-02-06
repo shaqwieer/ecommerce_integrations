@@ -313,8 +313,8 @@ def setup_custom_fields():
 				label="Shipping Company",
 				fieldtype="Link",
 				insert_after=SHIPPING_PHONE_FIELD,
-				options="Shipping Company",
-				allow_on_submit=1,
+				options="Shipping Company"
+				# allow_on_submit=1,
 			),
 			dict(
 				fieldname=SHIPPING_STATUS_FIELD,

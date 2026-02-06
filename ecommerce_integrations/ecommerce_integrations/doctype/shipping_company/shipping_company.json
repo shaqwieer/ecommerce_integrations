@@ -8,6 +8,7 @@
   "main_information_section",
   "shipping_name",
   "contact_address",
+  "account",
   "column_break_jwry",
   "contact_number",
   "additional_info"
@@ -43,12 +44,19 @@
    "fieldname": "additional_info",
    "fieldtype": "Text",
    "label": "Additional Info"
+  },
+  {
+   "fieldname": "account",
+   "fieldtype": "Link",
+   "label": "Account",
+   "options": "Account",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-02-03 23:34:11.319983",
+ "modified": "2026-02-06 19:54:48.951018",
  "modified_by": "Administrator",
  "module": "Ecommerce Integrations",
  "name": "Shipping Company",

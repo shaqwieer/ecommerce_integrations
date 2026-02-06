@@ -14,6 +14,7 @@ class ShippingCompany(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		account: DF.Link
 		additional_info: DF.Text | None
 		contact_address: DF.Data | None
 		contact_number: DF.Phone | None
