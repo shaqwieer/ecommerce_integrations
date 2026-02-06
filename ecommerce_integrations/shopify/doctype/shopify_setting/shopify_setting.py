@@ -24,8 +24,10 @@ from ecommerce_integrations.shopify.constants import (
 	ORDER_NUMBER_FIELD,
 	ORDER_STATUS_FIELD,
 	SHIPPING_ADDRESS_FIELD,
+	SHIPPING_COMPANY_FIELD,
 	SHIPPING_CUSTOMER_NAME_FIELD,
 	SHIPPING_PHONE_FIELD,
+	SHIPPING_STATUS_FIELD,
 	SUPPLIER_ID_FIELD,
 )
 from ecommerce_integrations.shopify.utils import (
@@ -305,6 +307,22 @@ def setup_custom_fields():
 				fieldtype="Data",
 				insert_after=SHIPPING_ADDRESS_FIELD,
 				read_only=1,
+			),
+			dict(
+				fieldname=SHIPPING_COMPANY_FIELD,
+				label="Shipping Company",
+				fieldtype="Link",
+				insert_after=SHIPPING_PHONE_FIELD,
+				options="Shipping Company",
+				allow_on_submit=1,
+			),
+			dict(
+				fieldname=SHIPPING_STATUS_FIELD,
+				label="Shipping Status",
+				fieldtype="Select",
+				insert_after=SHIPPING_COMPANY_FIELD,
+				options="\nPending\nIn Transit\nOut for Delivery\nDelivered\nReturned\nLost",
+				allow_on_submit=1,
 			),
 		],
 		"Sales Invoice": [
