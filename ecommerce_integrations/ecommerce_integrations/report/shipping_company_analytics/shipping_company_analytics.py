@@ -51,6 +51,13 @@ class ShippingCompanyAnalytics:
 				"width": 150,
 			},
 			{
+				"label": _("City"),
+				"fieldname": "city",
+				"fieldtype": "Link",
+				"options": "City",
+				"width": 120,
+			},
+			{
 				"label": _("Status"),
 				"fieldname": "status",
 				"fieldtype": "Data",
@@ -106,6 +113,7 @@ class ShippingCompanyAnalytics:
 				dn.name          AS delivery_note,
 				dn.posting_date,
 				dn.customer,
+				dn.city,
 				dn.status,
 				dn.`{SHIPPING_COMPANY_FIELD}` AS shipping_company,
 				dn.`{SHIPPING_STATUS_FIELD}` AS shipping_status,
@@ -147,6 +155,7 @@ class ShippingCompanyAnalytics:
 				delivery_note=dn.delivery_note,
 				posting_date=dn.posting_date,
 				customer=dn.customer,
+				city=dn.city,
 				status=dn.status,
 				shipping_status=dn.shipping_status,
 				cod_amount=dn.cod_amount,
@@ -339,6 +348,10 @@ class ShippingCompanyAnalytics:
 
 		wallet_balance = self._get_wallet_balance()
 
+		# City KPI: count of unique cities
+		unique_cities = set(d.get("city") for d in self.data if d.get("city"))
+		total_cities = len(unique_cities)
+
 		self.report_summary = [
 			{
 				"value": total_exposure,
@@ -363,6 +376,12 @@ class ShippingCompanyAnalytics:
 				"indicator": "Orange" if pending_remittance > 0 else "Green",
 				"label": _("Pending Remittance"),
 				"datatype": "Currency",
+			},
+			{
+				"value": total_cities,
+				"indicator": "Blue",
+				"label": _("Cities Covered"),
+				"datatype": "Int",
 			},
 		]
 
@@ -411,5 +430,8 @@ class ShippingCompanyAnalytics:
 			conds.append(
 				f"dn.`{SHIPPING_COMPANY_FIELD}` = %(shipping_company)s"
 			)
+
+		if self.filters.get("city"):
+			conds.append("dn.city = %(city)s")
 
 		return (" AND " + " AND ".join(conds)) if conds else ""

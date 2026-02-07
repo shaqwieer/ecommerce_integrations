@@ -32,5 +32,12 @@ frappe.query_reports["Shipping Company Analytics"] = {
 			default: "All",
 			width: 120,
 		},
+		{
+			fieldname: "city",
+			label: __("City"),
+			fieldtype: "Link",
+			options: "City",
+			width: 150,
+		},
 	],
 };

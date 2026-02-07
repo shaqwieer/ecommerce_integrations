@@ -38,18 +38,24 @@ frappe.query_reports["Shipping Company Summary"] = {
 			],
 		},
 		{
-			fieldname: "company",
-			label: __("Company"),
+			fieldname: "city",
+			label: __("City"),
 			fieldtype: "Link",
-			options: "Company",
-			default: frappe.defaults.get_user_default("Company"),
+			options: "City",
 		},
-		{
-			fieldname: "customer",
-			label: __("Customer"),
-			fieldtype: "Link",
-			options: "Customer",
-		},
+		// {
+		// 	fieldname: "company",
+		// 	label: __("Company"),
+		// 	fieldtype: "Link",
+		// 	options: "Company",
+		// 	default: frappe.defaults.get_user_default("Company"),
+		// },
+		// {
+		// 	fieldname: "customer",
+		// 	label: __("Customer"),
+		// 	fieldtype: "Link",
+		// 	options: "Customer",
+		// },
 	],
 	onload: function (report) {
 		// Add custom formatting

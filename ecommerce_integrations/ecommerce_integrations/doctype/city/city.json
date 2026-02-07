@@ -1,17 +1,12 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2026-02-03 23:31:56.118307",
+ "creation": "2026-02-07 17:36:48.756943",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "main_information_section",
-  "shipping_name",
-  "contact_address",
-  "account",
-  "column_break_jwry",
-  "contact_number",
-  "additional_info"
+  "city_name"
  ],
  "fields": [
   {
@@ -20,46 +15,20 @@
    "label": "Main Information"
   },
   {
-   "fieldname": "shipping_name",
+   "fieldname": "city_name",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Shipping Name",
-   "reqd": 1
-  },
-  {
-   "fieldname": "contact_address",
-   "fieldtype": "Data",
-   "label": "Contact Address"
-  },
-  {
-   "fieldname": "column_break_jwry",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "contact_number",
-   "fieldtype": "Phone",
-   "label": "Contact Number"
-  },
-  {
-   "fieldname": "additional_info",
-   "fieldtype": "Text",
-   "label": "Additional Info"
-  },
-  {
-   "fieldname": "account",
-   "fieldtype": "Link",
-   "label": "Account",
-   "options": "Account",
+   "label": "City Name",
    "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-02-07 17:41:02.245801",
+ "modified": "2026-02-07 17:41:21.792068",
  "modified_by": "Administrator",
  "module": "Ecommerce Integrations",
- "name": "Shipping Company",
+ "name": "City",
  "owner": "Administrator",
  "permissions": [
   {
@@ -81,5 +50,5 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "shipping_name"
+ "title_field": "city_name"
 }

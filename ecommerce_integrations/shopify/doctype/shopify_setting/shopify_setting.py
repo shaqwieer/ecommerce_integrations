@@ -23,12 +23,7 @@ from ecommerce_integrations.shopify.constants import (
 	ORDER_ITEM_DISCOUNT_FIELD,
 	ORDER_NUMBER_FIELD,
 	ORDER_STATUS_FIELD,
-	SHIPPING_ADDRESS_FIELD,
-	SHIPPING_COMPANY_FIELD,
-	SHIPPING_CUSTOMER_NAME_FIELD,
-	SHIPPING_PHONE_FIELD,
-	SHIPPING_STATUS_FIELD,
-	SUPPLIER_ID_FIELD,
+	SUPPLIER_ID_FIELD
 )
 from ecommerce_integrations.shopify.utils import (
 	ensure_old_connector_is_disabled,
@@ -43,10 +38,15 @@ class ShopifySetting(SettingController):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from ecommerce_integrations.shopify.doctype.shopify_tax_account.shopify_tax_account import ShopifyTaxAccount
-		from ecommerce_integrations.shopify.doctype.shopify_warehouse_mapping.shopify_warehouse_mapping import ShopifyWarehouseMapping
-		from ecommerce_integrations.shopify.doctype.shopify_webhooks.shopify_webhooks import ShopifyWebhooks
 		from frappe.types import DF
+
+		from ecommerce_integrations.shopify.doctype.shopify_tax_account.shopify_tax_account import (
+			ShopifyTaxAccount,
+		)
+		from ecommerce_integrations.shopify.doctype.shopify_warehouse_mapping.shopify_warehouse_mapping import (
+			ShopifyWarehouseMapping,
+		)
+		from ecommerce_integrations.shopify.doctype.shopify_webhooks.shopify_webhooks import ShopifyWebhooks
 
 		add_shipping_as_item: DF.Check
 		cash_bank_account: DF.Link | None
@@ -222,28 +222,7 @@ def setup_custom_fields():
 				insert_after=ORDER_NUMBER_FIELD,
 				read_only=1,
 				print_hide=1,
-			),
-			dict(
-				fieldname=SHIPPING_CUSTOMER_NAME_FIELD,
-				label="Shopify Shipping Customer Name",
-				fieldtype="Data",
-				insert_after=ORDER_STATUS_FIELD,
-				read_only=1,
-			),
-			dict(
-				fieldname=SHIPPING_ADDRESS_FIELD,
-				label="Shopify Shipping Address",
-				fieldtype="Small Text",
-				insert_after=SHIPPING_CUSTOMER_NAME_FIELD,
-				read_only=1,
-			),
-			dict(
-				fieldname=SHIPPING_PHONE_FIELD,
-				label="Shopify Shipping Phone",
-				fieldtype="Data",
-				insert_after=SHIPPING_ADDRESS_FIELD,
-				read_only=1,
-			),
+			)
 		],
 		"Sales Order Item": [
 			dict(
@@ -286,44 +265,8 @@ def setup_custom_fields():
 				insert_after="title",
 				read_only=1,
 				print_hide=1,
-			),
-			dict(
-				fieldname=SHIPPING_CUSTOMER_NAME_FIELD,
-				label="Shopify Shipping Customer Name",
-				fieldtype="Data",
-				insert_after=ORDER_STATUS_FIELD,
-				read_only=1,
-			),
-			dict(
-				fieldname=SHIPPING_ADDRESS_FIELD,
-				label="Shopify Shipping Address",
-				fieldtype="Small Text",
-				insert_after=SHIPPING_CUSTOMER_NAME_FIELD,
-				read_only=1,
-			),
-			dict(
-				fieldname=SHIPPING_PHONE_FIELD,
-				label="Shopify Shipping Phone",
-				fieldtype="Data",
-				insert_after=SHIPPING_ADDRESS_FIELD,
-				read_only=1,
-			),
-			dict(
-				fieldname=SHIPPING_COMPANY_FIELD,
-				label="Shipping Company",
-				fieldtype="Link",
-				insert_after=SHIPPING_PHONE_FIELD,
-				options="Shipping Company"
-				# allow_on_submit=1,
-			),
-			dict(
-				fieldname=SHIPPING_STATUS_FIELD,
-				label="Shipping Status",
-				fieldtype="Select",
-				insert_after=SHIPPING_COMPANY_FIELD,
-				options="\nPending\nIn Transit\nOut for Delivery\nDelivered\nReturned\nLost",
-				allow_on_submit=1,
-			),
+			)
+
 		],
 		"Sales Invoice": [
 			dict(
@@ -349,29 +292,8 @@ def setup_custom_fields():
 				insert_after=ORDER_ID_FIELD,
 				read_only=1,
 				print_hide=1,
-			),
-			dict(
-				fieldname=SHIPPING_CUSTOMER_NAME_FIELD,
-				label="Shopify Shipping Customer Name",
-				fieldtype="Data",
-				insert_after=ORDER_STATUS_FIELD,
-				read_only=1,
-			),
-			dict(
-				fieldname=SHIPPING_ADDRESS_FIELD,
-				label="Shopify Shipping Address",
-				fieldtype="Small Text",
-				insert_after=SHIPPING_CUSTOMER_NAME_FIELD,
-				read_only=1,
-			),
-			dict(
-				fieldname=SHIPPING_PHONE_FIELD,
-				label="Shopify Shipping Phone",
-				fieldtype="Data",
-				insert_after=SHIPPING_ADDRESS_FIELD,
-				read_only=1,
-			),
+			)
 		],
 	}
-
 	create_custom_fields(custom_fields)
+
