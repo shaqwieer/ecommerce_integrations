@@ -36,6 +36,7 @@ def sync_sales_order(payload, request_id=None):
 	order = payload
 	frappe.set_user("Administrator")
 	frappe.flags.request_id = request_id
+	# frappe.log_error(title="Incoming Sales Order Payload", message=frappe.as_json(payload))
 
 	if frappe.db.get_value("Sales Order", filters={ORDER_ID_FIELD: cstr(order["id"])}):
 		create_shopify_log(status="Invalid", message="Sales order already exists, not synced")
@@ -83,7 +84,7 @@ def _extract_shipping_info(shopify_order):
 		shipping_name = f"{first_name} {last_name}".strip()
 
 	# Get phone from shipping address
-	shipping_phone = shipping_address.get("phone") or ""
+	shipping_phone = shopify_order.get("phone") or shopify_order.get("email") or ""
 
 	return {
 		"shipping_customer_name": shipping_name,
@@ -346,28 +347,28 @@ def update_taxes_with_shipping_lines(taxes, shipping_lines, setting, items, taxe
 			if bool(taxes_inclusive):
 				shipping_charge_amount -= total_tax
 
-			if shipping_as_item:
-				items.append(
-					{
-						"item_code": setting.shipping_item,
-						"rate": shipping_charge_amount,
-						"delivery_date": items[-1]["delivery_date"] if items else nowdate(),
-						"qty": 1,
-						"stock_uom": "Nos",
-						"warehouse": setting.warehouse,
-					}
-				)
-			else:
-				taxes.append(
-					{
-						"charge_type": "Actual",
-						"account_head": get_tax_account_head(shipping_charge, charge_type="shipping"),
-						"description": get_tax_account_description(shipping_charge)
-						or shipping_charge["title"],
-						"tax_amount": shipping_charge_amount,
-						"cost_center": setting.cost_center,
-					}
-				)
+			# if shipping_as_item:
+			# 	items.append(
+			# 		{
+			# 			"item_code": setting.shipping_item,
+			# 			"rate": shipping_charge_amount,
+			# 			"delivery_date": items[-1]["delivery_date"] if items else nowdate(),
+			# 			"qty": 1,
+			# 			"stock_uom": "Nos",
+			# 			"warehouse": setting.warehouse,
+			# 		}
+			# 	)
+			# else:
+			# 	taxes.append(
+			# 		{
+			# 			"charge_type": "Actual",
+			# 			"account_head": get_tax_account_head(shipping_charge, charge_type="shipping"),
+			# 			"description": get_tax_account_description(shipping_charge)
+			# 			or shipping_charge["title"],
+			# 			"tax_amount": shipping_charge_amount,
+			# 			"cost_center": setting.cost_center,
+			# 		}
+			# 	)
 
 		for tax in shipping_charge.get("tax_lines"):
 			taxes.append(
