@@ -2,3 +2,5 @@ ecommerce_integrations.patches.update_shopify_custom_fields
 ecommerce_integrations.patches.update_shipining_custom_fields
 ecommerce_integrations.patches.add_city_to_delivery_note
 ecommerce_integrations.patches.add_tracking_shipment_number
+ecommerce_integrations.patches.update_shipining_custom_fields_v2
+

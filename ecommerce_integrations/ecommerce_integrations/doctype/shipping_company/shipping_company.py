@@ -100,6 +100,7 @@ def setup_custom_fields_on_begining():
 					fieldtype="Link",
 					insert_after=SHIPPING_PHONE_FIELD,
 					options="Shipping Company",
+					reqd=1,
 					# allow_on_submit=1,
 				),
 				dict(
