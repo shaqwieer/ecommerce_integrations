@@ -1,0 +1,46 @@
+{
+ "add_total_row": 0,
+ "add_translate_data": 0,
+ "columns": [],
+ "creation": "2026-02-10 18:40:41.450922",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "letterhead": null,
+ "modified": "2026-02-10 20:15:15.996659",
+ "modified_by": "Administrator",
+ "module": "Ecommerce Integrations",
+ "name": "Shipping Company Orders",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "Delivery Note",
+ "report_name": "Shipping Company Orders",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "Stock User"
+  },
+  {
+   "role": "Stock Manager"
+  },
+  {
+   "role": "Sales User"
+  },
+  {
+   "role": "Accounts User"
+  },
+  {
+   "role": "Delivery User"
+  },
+  {
+   "role": "Delivery Manager"
+  },
+  {
+   "role": "E-Commerce"
+  }
+ ],
+ "timeout": 0
+}
