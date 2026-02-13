@@ -73,7 +73,7 @@ def get_columns():
 			"fieldtype": "Data",
 			"width": 130,
 		},
-		{"fieldname": "shipping_status", "label": _("Shipping Status"), "fieldtype": "Data", "width": 110},
+		# {"fieldname": "shipping_status", "label": _("Shipping Status"), "fieldtype": "Data", "width": 110},
 		{"fieldname": "payment_status", "label": _("Payment Status"), "fieldtype": "Data", "width": 110},
 		{"fieldname": "is_return", "label": _("Is Return"), "fieldtype": "Check", "width": 80},
 		{
@@ -131,7 +131,7 @@ def get_data(filters):
 			dn.shopify_shipping_phone,
 			dn.shopify_shipping_address,
 			ship_co.shipping_name.as_("shipping_company_display"),  # Readable company
-			dn.shipping_status,
+			# dn.shipping_status,
 			dn.is_return,
 			dni.against_sales_order.as_("sales_order"),
 			dn.grand_total,
@@ -156,10 +156,14 @@ def get_data(filters):
 		query = query.where(dn.shipping_company == filters["shipping_company"])
 	if filters.get("delivery_note_status"):
 		query = query.where(dn.docstatus == get_docstatus_value(filters["delivery_note_status"]))
-	if filters.get("shipping_status"):
-		query = query.where(dn.shipping_status == filters["shipping_status"])
+	# if filters.get("shipping_status"):
+	# 	query = query.where(dn.shipping_status == filters["shipping_status"])
 
 	data = query.run(as_dict=True)
+
+	# Collect all unique sales orders for non-return rows (bulk fetch)
+	sales_orders = list({row.sales_order for row in data if not row.is_return and row.get("sales_order")})
+	payment_map = get_payment_info_bulk(sales_orders)
 
 	for row in data:
 		if row.is_return:
@@ -168,52 +172,80 @@ def get_data(filters):
 			row.paid_amount = 0
 			row.open_amount = 0
 		else:
-			status, total_inv, paid, open_amt = get_payment_info_for_so(row.get("sales_order"))
-			row["payment_status"] = status
-			row["total_invoice_amount"] = total_inv
-			row["paid_amount"] = paid
-			row["open_amount"] = open_amt
+			so = row.get("sales_order")
+			if so and so in payment_map:
+				info = payment_map[so]
+				row["payment_status"] = info["status"]
+				row["total_invoice_amount"] = info["total_invoice_amount"]
+				row["paid_amount"] = info["paid_amount"]
+				row["open_amount"] = info["open_amount"]
+			else:
+				row["payment_status"] = "Not Invoiced" if so else ""
+				row["total_invoice_amount"] = 0
+				row["paid_amount"] = 0
+				row["open_amount"] = 0
 
 	return data
 
 
-def get_payment_info_for_so(sales_order):
+def get_payment_info_bulk(sales_orders):
 	"""
-	Get payment status and amounts: SO -> Sales Invoice.
-	Returns: (status, total_invoice_amount, paid_amount, open_amount)
+	Bulk fetch payment info for a list of sales orders in a single query.
+	Returns a dict: {sales_order: {status, total_invoice_amount, paid_amount, open_amount}}
 	"""
-	empty = ("", 0, 0, 0)
-	if not sales_order:
-		return empty
+	if not sales_orders:
+		return {}
 
-	# Get all submitted Sales Invoices against this Sales Order
-	invoices = frappe.db.sql(
+	# Single query to get aggregated invoice data per sales order
+	invoice_data = frappe.db.sql(
 		"""
-		SELECT si.name, si.outstanding_amount, si.grand_total
+		SELECT
+			sii.sales_order,
+			SUM(si.grand_total) AS total_grand,
+			SUM(si.outstanding_amount) AS total_outstanding
 		FROM `tabSales Invoice` si
 		INNER JOIN `tabSales Invoice Item` sii ON sii.parent = si.name
-		WHERE sii.sales_order = %(so)s
+		WHERE sii.sales_order IN %(sales_orders)s
 			AND si.docstatus = 1
-		GROUP BY si.name
+		GROUP BY sii.sales_order
 		""",
-		{"so": sales_order},
+		{"sales_orders": sales_orders},
 		as_dict=True,
 	)
 
-	if not invoices:
-		return ("Not Invoiced", 0, 0, 0)
+	payment_map = {}
 
-	total_outstanding = sum(flt(inv.outstanding_amount) for inv in invoices)
-	total_grand = sum(flt(inv.grand_total) for inv in invoices)
-	paid_amount = flt(total_grand) - flt(total_outstanding)
+	# Mark all requested SOs as "Not Invoiced" first
+	for so in sales_orders:
+		payment_map[so] = {
+			"status": "Not Invoiced",
+			"total_invoice_amount": 0,
+			"paid_amount": 0,
+			"open_amount": 0,
+		}
 
-	if flt(total_grand) <= 0:
-		return ("Fully Paid", total_grand, paid_amount, 0)
-	if flt(total_outstanding) <= 0:
-		return ("Fully Paid", total_grand, paid_amount, 0)
-	if flt(total_outstanding) >= flt(total_grand):
-		return ("Not Paid", total_grand, paid_amount, total_outstanding)
-	return ("Partially Paid", total_grand, paid_amount, total_outstanding)
+	# Override with actual invoice data
+	for row in invoice_data:
+		total_grand = flt(row.total_grand)
+		total_outstanding = flt(row.total_outstanding)
+		paid_amount = total_grand - total_outstanding
+
+		if total_grand <= 0 or total_outstanding <= 0:
+			status = "Fully Paid"
+			total_outstanding = 0
+		elif total_outstanding >= total_grand:
+			status = "Not Paid"
+		else:
+			status = "Partially Paid"
+
+		payment_map[row.sales_order] = {
+			"status": status,
+			"total_invoice_amount": total_grand,
+			"paid_amount": paid_amount,
+			"open_amount": total_outstanding,
+		}
+
+	return payment_map
 
 
 def get_report_summary(data, filters):

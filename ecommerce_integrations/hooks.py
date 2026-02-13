@@ -14,6 +14,12 @@ fixtures = [
         "filters": [
             ["name", "=", "E-Commerce"]
         ]
+    },
+    {
+        "doctype": "Role",
+        "filters": [
+            ["name", "in", ["E-Commerce"]]
+        ]
     }
 ]
 # Includes in <head>

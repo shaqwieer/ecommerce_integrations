@@ -77,20 +77,20 @@ frappe.query_reports["Shipping Company Orders"] = {
 			],
 			default: "Submitted",
 		},
-		{
-			fieldname: "shipping_status",
-			label: __("Shipping Status"),
-			fieldtype: "Select",
-			options: [
-				"",
-				"Pending",
-				"In Transit",
-				"Out for Delivery",
-				"Delivered",
-				"Returned",
-				"Lost",
-			],
-		},
+		// {
+		// 	fieldname: "shipping_status",
+		// 	label: __("Shipping Status"),
+		// 	fieldtype: "Select",
+		// 	options: [
+		// 		"",
+		// 		"Pending",
+		// 		"In Transit",
+		// 		"Out for Delivery",
+		// 		"Delivered",
+		// 		"Returned",
+		// 		"Lost",
+		// 	],
+		// },
 		// Chart view selector — display only, does not filter data
 		{
 			fieldname: "chart_type",
