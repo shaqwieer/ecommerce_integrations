@@ -9,18 +9,10 @@ app_license = "mit"
 required_apps = ["frappe/erpnext"]
 
 fixtures = [
-    {
-        "doctype": "Workspace",
-        "filters": [
-            ["name", "=", "E-Commerce"]
-        ]
-    },
-    {
-        "doctype": "Role",
-        "filters": [
-            ["name", "in", ["E-Commerce"]]
-        ]
-    }
+	{"doctype": "Workspace", "filters": [["name", "=", "E-Commerce"]]},
+	{"doctype": "Role", "filters": [["name", "in", ["E-Commerce"]]]},
+	{"doctype": "Custom Field"},
+	{"doctype": "Translation"},
 ]
 # Includes in <head>
 # ------------------

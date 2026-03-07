@@ -46,85 +46,107 @@ class ShippingCompany(Document):
 
 	pass
 
+
 def setup_custom_fields_on_begining():
-		custom_fields = {
-			"Sales Order": [
-				dict(
-					fieldname=SHIPPING_CUSTOMER_NAME_FIELD,
-					label="Shopify Shipping Customer Name",
-					fieldtype="Data",
-					insert_after=ORDER_STATUS_FIELD,
-					read_only=0,
-				),
-				dict(
-					fieldname=SHIPPING_ADDRESS_FIELD,
-					label="Shopify Shipping Address",
-					fieldtype="Small Text",
-					insert_after=SHIPPING_CUSTOMER_NAME_FIELD,
-					read_only=0,
-				),
-				dict(
-					fieldname=SHIPPING_PHONE_FIELD,
-					label="Shopify Shipping Phone",
-					fieldtype="Data",
-					insert_after=SHIPPING_ADDRESS_FIELD,
-					read_only=0,
-				),
-			],
-			"Delivery Note": [
-				dict(
-					fieldname=SHIPPING_CUSTOMER_NAME_FIELD,
-					label="Shopify Shipping Customer Name",
-					fieldtype="Data",
-					insert_after=ORDER_STATUS_FIELD,
-					read_only=1,
-				),
-				dict(
-					fieldname=SHIPPING_ADDRESS_FIELD,
-					label="Shopify Shipping Address",
-					fieldtype="Small Text",
-					insert_after=SHIPPING_CUSTOMER_NAME_FIELD,
-					read_only=1,
-				),
-				dict(
-					fieldname=SHIPPING_PHONE_FIELD,
-					label="Shopify Shipping Phone",
-					fieldtype="Data",
-					insert_after=SHIPPING_ADDRESS_FIELD,
-					read_only=1,
-				),
-				dict(
-					fieldname=SHIPPING_COMPANY_FIELD,
-					label="Shipping Company",
-					fieldtype="Link",
-					insert_after=SHIPPING_PHONE_FIELD,
-					options="Shipping Company",
-					reqd=1,
-					# allow_on_submit=1,
-				),
-			],
-			"Sales Invoice": [
-				dict(
-					fieldname=SHIPPING_CUSTOMER_NAME_FIELD,
-					label="Shopify Shipping Customer Name",
-					fieldtype="Data",
-					insert_after=ORDER_STATUS_FIELD,
-					read_only=1,
-				),
-				dict(
-					fieldname=SHIPPING_ADDRESS_FIELD,
-					label="Shopify Shipping Address",
-					fieldtype="Small Text",
-					insert_after=SHIPPING_CUSTOMER_NAME_FIELD,
-					read_only=1,
-				),
-				dict(
-					fieldname=SHIPPING_PHONE_FIELD,
-					label="Shopify Shipping Phone",
-					fieldtype="Data",
-					insert_after=SHIPPING_ADDRESS_FIELD,
-					read_only=1,
-				),
-			],
-		}
-		create_custom_fields(custom_fields)
+	custom_fields = {
+		"Sales Order": [
+			dict(
+				fieldname=SHIPPING_CUSTOMER_NAME_FIELD,
+				label="Shopify Shipping Customer Name",
+				fieldtype="Data",
+				insert_after=ORDER_STATUS_FIELD,
+			),
+			dict(
+				fieldname=SHIPPING_ADDRESS_FIELD,
+				label="Shopify Shipping Address",
+				fieldtype="Small Text",
+				insert_after=SHIPPING_CUSTOMER_NAME_FIELD,
+			),
+			dict(
+				fieldname=SHIPPING_PHONE_FIELD,
+				label="Shopify Shipping Phone",
+				fieldtype="Data",
+				insert_after=SHIPPING_ADDRESS_FIELD,
+			),
+		],
+		"Delivery Note": [
+			dict(
+				fieldname=SHIPPING_CUSTOMER_NAME_FIELD,
+				label="Shopify Shipping Customer Name",
+				fieldtype="Data",
+				insert_after=ORDER_STATUS_FIELD,
+				read_only=1,
+			),
+			dict(
+				fieldname=SHIPPING_ADDRESS_FIELD,
+				label="Shopify Shipping Address",
+				fieldtype="Small Text",
+				insert_after=SHIPPING_CUSTOMER_NAME_FIELD,
+				read_only=1,
+			),
+			dict(
+				fieldname=SHIPPING_PHONE_FIELD,
+				label="Shopify Shipping Phone",
+				fieldtype="Data",
+				insert_after=SHIPPING_ADDRESS_FIELD,
+				read_only=1,
+			),
+			dict(
+				fieldname=SHIPPING_COMPANY_FIELD,
+				label="Shipping Company",
+				fieldtype="Link",
+				insert_after=SHIPPING_PHONE_FIELD,
+				options="Shipping Company",
+				reqd=1,
+				# allow_on_submit=1,
+			),
+			dict(
+				fieldname="city",
+				label="City",
+				fieldtype="Link",
+				options="City",
+				insert_after="customer",
+				reqd=1,
+				in_standard_filter=1,
+			),
+			dict(
+				fieldname="tracking_shipment_number",
+				label="Tracking Shipment Number",
+				fieldtype="Data",
+				insert_after="city",
+				reqd=1,
+			),
+			dict(
+				fieldname=SHIPPING_COMPANY_FIELD,
+				label="Shipping Company",
+				fieldtype="Link",
+				insert_after=SHIPPING_PHONE_FIELD,
+				options="Shipping Company",
+				reqd=1,
+			),
+		],
+		"Sales Invoice": [
+			dict(
+				fieldname=SHIPPING_CUSTOMER_NAME_FIELD,
+				label="Shopify Shipping Customer Name",
+				fieldtype="Data",
+				insert_after=ORDER_STATUS_FIELD,
+				read_only=1,
+			),
+			dict(
+				fieldname=SHIPPING_ADDRESS_FIELD,
+				label="Shopify Shipping Address",
+				fieldtype="Small Text",
+				insert_after=SHIPPING_CUSTOMER_NAME_FIELD,
+				read_only=1,
+			),
+			dict(
+				fieldname=SHIPPING_PHONE_FIELD,
+				label="Shopify Shipping Phone",
+				fieldtype="Data",
+				insert_after=SHIPPING_ADDRESS_FIELD,
+				read_only=1,
+			),
+		],
+	}
+	create_custom_fields(custom_fields)
