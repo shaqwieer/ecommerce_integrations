@@ -109,35 +109,30 @@ def get_columns():
 
 def get_data(filters):
 	dn = DocType("Delivery Note")
-	dni = DocType("Delivery Note Item")
 	city = DocType("City")
 	ship_co = DocType("Shipping Company")
 
 	query = (
 		frappe.qb.from_(dn)
-		.left_join(dni)
-		.on(dni.parent == dn.name)
 		.left_join(city)
-		.on(city.name == dn.city)  # Join to get City Name
+		.on(city.name == dn.city)
 		.left_join(ship_co)
-		.on(ship_co.name == dn.shipping_company)  # Join to get Shipping Company Name
+		.on(ship_co.name == dn.shipping_company)
 		.select(
 			dn.name.as_("delivery_note"),
 			dn.posting_date,
 			# dn.customer,
-			city.city_name.as_("city_display"),  # Readable city
+			city.city_name.as_("city_display"),
 			dn.tracking_shipment_number,
 			dn.shopify_shipping_customer_name,
 			dn.shopify_shipping_phone,
 			dn.shopify_shipping_address,
-			ship_co.shipping_name.as_("shipping_company_display"),  # Readable company
+			ship_co.shipping_name.as_("shipping_company_display"),
 			# dn.shipping_status,
 			dn.is_return,
-			dni.against_sales_order.as_("sales_order"),
 			dn.grand_total,
 			dn.currency,
 		)
-		.distinct()
 		.orderby(dn.posting_date, order=Order.desc)
 	)
 
@@ -161,8 +156,27 @@ def get_data(filters):
 
 	data = query.run(as_dict=True)
 
+	# Fetch one sales_order per DN (grouped to avoid duplicate rows from multi-item DNs)
+	dn_names = [row.delivery_note for row in data]
+	so_map = {}
+	if dn_names:
+		so_rows = frappe.db.sql(
+			"""
+			SELECT parent, MIN(against_sales_order) AS sales_order
+			FROM `tabDelivery Note Item`
+			WHERE parent IN %(dn_names)s
+			GROUP BY parent
+			""",
+			{"dn_names": dn_names},
+			as_dict=True,
+		)
+		so_map = {r.parent: r.sales_order for r in so_rows}
+
+	for row in data:
+		row["sales_order"] = so_map.get(row.delivery_note)
+
 	# Collect all unique sales orders for non-return rows (bulk fetch)
-	sales_orders = list({row.sales_order for row in data if not row.is_return and row.get("sales_order")})
+	sales_orders = list({row["sales_order"] for row in data if not row.is_return and row.get("sales_order")})
 	payment_map = get_payment_info_bulk(sales_orders)
 
 	for row in data:
@@ -196,18 +210,23 @@ def get_payment_info_bulk(sales_orders):
 	if not sales_orders:
 		return {}
 
-	# Single query to get aggregated invoice data per sales order
+	# Deduplicate invoice rows first so multi-item invoices are not double-counted.
+	# The inner subquery finds one row per (sales_order, invoice) pair; the outer
+	# query then sums each invoice's grand_total / outstanding_amount exactly once.
 	invoice_data = frappe.db.sql(
 		"""
 		SELECT
-			sii.sales_order,
-			SUM(si.grand_total) AS total_grand,
+			inv.sales_order,
+			SUM(si.grand_total)        AS total_grand,
 			SUM(si.outstanding_amount) AS total_outstanding
 		FROM `tabSales Invoice` si
-		INNER JOIN `tabSales Invoice Item` sii ON sii.parent = si.name
-		WHERE sii.sales_order IN %(sales_orders)s
-			AND si.docstatus = 1
-		GROUP BY sii.sales_order
+		INNER JOIN (
+			SELECT DISTINCT sales_order, parent AS invoice_name
+			FROM `tabSales Invoice Item`
+			WHERE sales_order IN %(sales_orders)s
+		) inv ON inv.invoice_name = si.name
+		WHERE si.docstatus = 1
+		GROUP BY inv.sales_order
 		""",
 		{"sales_orders": sales_orders},
 		as_dict=True,
